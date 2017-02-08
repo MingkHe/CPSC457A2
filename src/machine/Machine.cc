@@ -295,7 +295,6 @@ void Machine::initBSP(mword magic, vaddr mbiAddr, mword idx) {
       schedulerTable[coreIdx], frameManager, coreIdx, ap.second, ap.first);
     coreIdx += 1;
   }
-
   // map APIC page, use APIC ID to determine bspIndex
   kernelSpace.mapDirect<1>(apicPhysAddr, apicAddr, pagesize<1>(), Paging::MMapIO);
   bspApicID = MappedAPIC()->getID();
@@ -307,8 +306,22 @@ void Machine::initBSP(mword magic, vaddr mbiAddr, mword idx) {
   }
   DBG::outl(DBG::Boot, "CPUs: ", processorCount, '/', bspIndex, '/', bspApicID);
   KASSERT0(bspIndex != ~mword(0));
-
+  KOUT::outl("BG10147");
   // init and install processor object (need bspIndex) -> start main/idle loop
+  //processorTable[bspIndex].init(pml4addr, idt, sizeof(idt), bootMain);
+  KOUT::outl("BG210147");
+  auto scparam = kernelFS.find("exec/schedparam");
+  if (scparam == kernelFS.end()) {
+    KOUT::outl("schedparam information not found");
+  } else {
+    FileAccess f(scparam->second);
+    for (;;) {
+      char c;
+      if (f.read(&c, 1) == 0) break;
+      KOUT::out1(c);
+    }
+    KOUT::outl();
+  }
   processorTable[bspIndex].init(pml4addr, idt, sizeof(idt), bootMain);
 }
 
